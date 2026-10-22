@@ -1,3 +1,5 @@
+import uuid
+
 import chromadb
 
 
@@ -6,16 +8,25 @@ class VectorStoreManager:
         self.collection_name = collection_name
         self.client = chromadb.PersistentClient(path="./chroma_db")
 
-        self.embedding_func = chromadb.utils.embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name="all-MiniLM-L6-v2"
+        self.embedding_func = (
+            chromadb.utils.embedding_functions.SentenceTransformerEmbeddingFunction(
+                model_name="all-MiniLM-L6-v2"
+            )
         )
-        self.collection = self.client.get_or_create_collection(name=self.collection_name, embedding_function=self.embedding_func)
+        try:
+            # Try to get the existing collection first
+            self.collection = self.client.get_collection(name=self.collection_name)
+        except Exception:
+            # If it doesn't exist, create it and attach the embedding function
+            self.collection = self.client.create_collection(
+                name=self.collection_name, embedding_function=self.embedding_func
+            )
 
     def add_documents(self, chunks: list[dict]) -> None:
         self.collection.add(
             documents=[chunk["text"] for chunk in chunks],
             metadatas=[chunk["metadata"] for chunk in chunks],
-            ids=[f"doc_{i}" for i in range(len(chunks))],
+            ids=[str(uuid.uuid4()) for _ in chunks],
         )
 
     def search(self, query: str, top_k: int = 3) -> list[dict]:
