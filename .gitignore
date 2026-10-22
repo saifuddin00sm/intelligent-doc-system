@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+venv/
+env/
+.env
+
+# AI/ML Artifacts (Don't commit large models or local DBs)
+chroma_db/
+*.bin
+*.safetensors
+
+# sample data
+data
+
+# OS
+.DS_Store
+Thumbs.db
